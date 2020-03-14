@@ -1,7 +1,8 @@
+import 'package:basicapp/sqlite/employee.dart';
 import 'package:flutter/material.dart';
-import 'src/sqlite/employee.dart';
 import 'dart:async';
-import 'src/sqlite/db_helper.dart';
+import 'package:basicapp/sqlite/db_helper.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -9,9 +10,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blueGrey,
       ),
       home: MyHomePage(title: 'Todo'),
     );
@@ -28,11 +30,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   //
   Future<List<Employee>> employees;
   TextEditingController controller = TextEditingController();
+  TextEditingController cdescription = TextEditingController();
   String name;
+  String description;
   int curUserId;
 
   final formKey = new GlobalKey<FormState>();
@@ -40,34 +43,35 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isUpdating;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    dbHelper =  DBHelper();
+    dbHelper = DBHelper();
     isUpdating = false;
     refreshList();
   }
 
-  refreshList(){
+  refreshList() {
     setState(() {
-       employees = dbHelper.getEmployees();
+      employees = dbHelper.getEmployees();
     });
   }
-  clearName(){
+
+  clearName() {
     controller.text = '';
+    cdescription.text = '';
   }
 
-  validate(){
-    if(formKey.currentState.validate()){
+  validate() {
+    if (formKey.currentState.validate()) {
       formKey.currentState.save();
-      if(isUpdating){
-        Employee e = Employee(curUserId, name);
+      if (isUpdating) {
+        Employee e = Employee(curUserId, name, description);
         dbHelper.update(e);
         setState(() {
           isUpdating = false;
         });
-       
       } else {
-        Employee e =Employee(null, name);
+        Employee e = Employee(null, name, description);
         dbHelper.save(e);
       }
       clearName();
@@ -75,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  form(){
+  form() {
     return Form(
       key: formKey,
       child: Padding(
@@ -88,9 +92,16 @@ class _MyHomePageState extends State<MyHomePage> {
             TextFormField(
               controller: controller,
               keyboardType: TextInputType.text,
-              decoration: InputDecoration(labelText: 'Name'),
-              validator: (val) => val.length == 0 ? 'Enter Name' :null,
+              decoration: InputDecoration(labelText: 'Title'),
+              validator: (val) => val.length == 0 ? 'Enter Title' : null,
               onSaved: (val) => name = val,
+            ),
+            TextFormField(
+              controller: cdescription,
+              keyboardType: TextInputType.text,
+              decoration: InputDecoration(labelText: 'Description'),
+              validator: (val) => val.length == 0 ? 'Enter Description' : null,
+              onSaved: (val) => description = val,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -100,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Text(isUpdating ? 'UPDATE' : 'ADD'),
                 ),
                 FlatButton(
-                  onPressed: (){
+                  onPressed: () {
                     setState(() {
                       isUpdating = false;
                     });
@@ -115,62 +126,67 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-
-  SingleChildScrollView dataTable(List<Employee> employees){
+ 
+  SingleChildScrollView dataTable(List<Employee> employees) {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: DataTable(
         columns: [
-          DataColumn(
-            label: Text('NAME')
-          ),
-          DataColumn(
-            label: Text('DELETE')
-          )
+          DataColumn(label: Text('TITLE')),
+          DataColumn(label: Text('DESCRIPTON')),
+          DataColumn(label: Text('DELETE'))
         ],
-        rows: employees.map((employees) => DataRow(
-          cells: [
-            DataCell(
-              Text(employees.name),
-              onTap: (){
-                setState(() {
-                  isUpdating = true;
-                  curUserId = employees.id;
-                });
-                controller.text = employees.name;
-              }
-            ),
-             DataCell(
-              IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: (){
-                  dbHelper.delete(employees.id);
-                  refreshList();
-                },
-              )
+        rows: employees
+            .map(
+              (employees) => DataRow(cells: [
+                DataCell(Text(employees.name), onTap: () {
+                  setState(() {
+                    isUpdating = true;
+                    curUserId = employees.id;
+                  });
+                  controller.text = employees.name;
+                  cdescription.text = employees.description;
+                }),
+                DataCell(Text(employees.description), onTap: (){
+                  setState(() {
+                    isUpdating = true;
+                    curUserId = employees.id;
+                  });
+                   controller.text = employees.name;
+                  cdescription.text = employees.description;
+                }),
+                DataCell(IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    dbHelper.delete(employees.id);
+                    refreshList();
+                  },
+                ))
+              ]),
             )
-          ]
-        ),).toList(),
+            .toList(),
       ),
     );
   }
-  list(){
-     return Expanded(
-       child: FutureBuilder(
-         future: employees,
-         builder: (context, snapshot){
-           if(snapshot.hasData){
-             return dataTable(snapshot.data);
-           }
-           if(null == snapshot.data || snapshot.data.length == 0){
-             return Text("No Data Found");
-           }
 
-           return CircularProgressIndicator();
-         },
-       ),
-     );
+  list() {
+    return Expanded(
+      child: FutureBuilder(
+        future: employees,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return dataTable(snapshot.data);
+          }
+          if (null == snapshot.data || snapshot.data.length == 0) {
+            return Text("No Data Found");
+          }
+
+          return CircularProgressIndicator();
+        },
+      ),
+    );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,10 +198,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           verticalDirection: VerticalDirection.down,
-          children: <Widget>[
-              form(),
-              list()
-          ],
+          children: <Widget>[form(), list()],
         ),
       ),
     );
