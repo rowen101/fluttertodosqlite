@@ -170,9 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       itemCount: snapshot.data.length,
                       itemBuilder: (context, index) {
                         return new Row(
-                          
                           children: <Widget>[
-                           
                             Column(
                               children: <Widget>[
                                 IconButton(
@@ -183,21 +181,32 @@ class _MyHomePageState extends State<MyHomePage> {
                               ],
                             ),
                             Expanded(
-                              
                                 child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Container(
-                                  padding: const EdgeInsets.only(bottom: 9.0),
-                                  child:  Text(snapshot.data[index].title,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontStyle: snapshot.data[index].isdone
-                                              ? FontStyle.italic
-                                              : null)),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => TodoDetails(
+                                                  todo: snapshot.data[index].id,
+                                                )));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.only(bottom: 9.0),
+                                    child: Text(snapshot.data[index].title,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontStyle:
+                                                snapshot.data[index].isdone
+                                                    ? FontStyle.italic
+                                                    : null)),
+                                  ),
                                 ),
-                                Text(snapshot.data[index].description,
-                                    style: TextStyle(color: Colors.grey[500])),
+                                // Text(snapshot.data[index].description,
+                                //     style: TextStyle(color: Colors.grey[500])
+                                //     ),
                               ],
                             )),
                             Column(
@@ -232,9 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                     );
                   }
-                } 
-                else if(snapshot.data.length == 0)
-                {
+                } else if (snapshot.data.length == 0) {
                   return Text('No Record');
                 }
                 return new Container(
@@ -245,4 +252,3 @@ class _MyHomePageState extends State<MyHomePage> {
             )));
   }
 }
-
