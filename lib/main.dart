@@ -1,7 +1,10 @@
-import 'package:basicapp/sqlite/employee.dart';
+import 'package:Todo/sqlite/todo.dart';
+import 'package:Todo/views/details.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:basicapp/sqlite/db_helper.dart';
+import 'package:Todo/sqlite/db_helper.dart';
+import 'package:Todo/views/about.dart';
+import 'package:Todo/views/add.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,8 +13,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Todo',
       theme: ThemeData(
         primarySwatch: Colors.blueGrey,
       ),
@@ -30,138 +33,83 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  //
-  Future<List<Employee>> employees;
+  Future<List<Todo>> getTodoFromDB() async {
+    var dbHelper = DBHelper();
+    Future<List<Todo>> todos = dbHelper.getTodo();
+
+    return todos;
+  }
+
   TextEditingController controller = TextEditingController();
   TextEditingController cdescription = TextEditingController();
   String name;
   String description;
   int curUserId;
 
+  final scaffoldKey = new GlobalKey<ScaffoldState>();
   final formKey = new GlobalKey<FormState>();
-  var dbHelper;
+
   bool isUpdating;
 
   @override
   void initState() {
     super.initState();
-    dbHelper = DBHelper();
+
     isUpdating = false;
-    refreshList();
   }
 
-  refreshList() {
-    setState(() {
-      employees = dbHelper.getEmployees();
-    });
-  }
-
-  clearName() {
-    controller.text = '';
-    cdescription.text = '';
-  }
-
-  validate() {
-    if (formKey.currentState.validate()) {
-      formKey.currentState.save();
-      if (isUpdating) {
-        Employee e = Employee(curUserId, name, description);
-        dbHelper.update(e);
-        setState(() {
-          isUpdating = false;
-        });
-      } else {
-        Employee e = Employee(null, name, description);
-        dbHelper.save(e);
-      }
-      clearName();
-      refreshList();
-    }
-  }
-
-  form() {
-    return Form(
-      key: formKey,
-      child: Padding(
-        padding: EdgeInsets.all(15.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          verticalDirection: VerticalDirection.down,
-          children: <Widget>[
-            TextFormField(
-              controller: controller,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(labelText: 'Title'),
-              validator: (val) => val.length == 0 ? 'Enter Title' : null,
-              onSaved: (val) => name = val,
-            ),
-            TextFormField(
-              controller: cdescription,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(labelText: 'Description'),
-              validator: (val) => val.length == 0 ? 'Enter Description' : null,
-              onSaved: (val) => description = val,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                FlatButton(
-                  onPressed: validate,
-                  child: Text(isUpdating ? 'UPDATE' : 'ADD'),
-                ),
-                FlatButton(
-                  onPressed: () {
-                    setState(() {
-                      isUpdating = false;
-                    });
-                    clearName();
-                  },
-                  child: Text('CANCEL'),
-                )
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
- 
-  SingleChildScrollView dataTable(List<Employee> employees) {
+  SingleChildScrollView dataTable(List<Todo> todo) {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: DataTable(
         columns: [
           DataColumn(label: Text('TITLE')),
           DataColumn(label: Text('DESCRIPTON')),
-          DataColumn(label: Text('DELETE'))
+          // DataColumn(label: Text('DELETE')),
+          DataColumn(label: Text('View'))
         ],
-        rows: employees
+        rows: todo
             .map(
-              (employees) => DataRow(cells: [
-                DataCell(Text(employees.name), onTap: () {
+              (todos) => DataRow(cells: [
+                DataCell(Text(todos.title), onTap: () {
                   setState(() {
                     isUpdating = true;
-                    curUserId = employees.id;
+                    curUserId = todos.id;
                   });
-                  controller.text = employees.name;
-                  cdescription.text = employees.description;
+                  controller.text = todos.title;
+                  cdescription.text = todos.description;
                 }),
-                DataCell(Text(employees.description), onTap: (){
-                  setState(() {
-                    isUpdating = true;
-                    curUserId = employees.id;
-                  });
-                   controller.text = employees.name;
-                  cdescription.text = employees.description;
+                DataCell(Text(todos.description), onTap: () {
+                  // setState(() {
+                  //   isUpdating = true;
+                  //   curUserId = employees.id;
+                  // });
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ADD(
+                                id: todos.id,
+                              )));
+                  controller.text = todos.title;
+                  cdescription.text = todos.description;
                 }),
+                // DataCell(IconButton(
+                //   icon: Icon(Icons.delete),
+                //   onPressed: () {
+                //     dbHelper.delete(todos.id);
+                //     refreshList();
+                //   },
+                // )),
                 DataCell(IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: Icon(Icons.details),
                   onPressed: () {
-                    dbHelper.delete(employees.id);
-                    refreshList();
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                TodoDetails(todo: todos.title)));
                   },
-                ))
+                )),
               ]),
             )
             .toList(),
@@ -169,38 +117,132 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  list() {
-    return Expanded(
-      child: FutureBuilder(
-        future: employees,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return dataTable(snapshot.data);
-          }
-          if (null == snapshot.data || snapshot.data.length == 0) {
-            return Text("No Data Found");
-          }
-
-          return CircularProgressIndicator();
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          verticalDirection: VerticalDirection.down,
-          children: <Widget>[form(), list()],
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                  child: Text('Drawer Header'),
+                  decoration: BoxDecoration(color: Colors.blueGrey)),
+              ListTile(
+                  title: Text("About"),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => About(
+                                  about: null,
+                                )));
+                  })
+            ],
+          ),
         ),
-      ),
-    );
+        appBar: AppBar(
+          title: Text(widget.title),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.add_circle),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ADD(id: null)));
+              },
+            ),
+            PopupMenuButton(itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem(
+                  child: Text('About'),
+                )
+              ];
+            })
+          ],
+        ),
+        body: new Container(
+            padding: EdgeInsets.all(20.0),
+            child: FutureBuilder<List<Todo>>(
+              future: getTodoFromDB(),
+              builder: (context, snapshot) {
+                if (snapshot.data != null) {
+                  if (snapshot.hasData) {
+                    return ListView.builder(
+                      itemCount: snapshot.data.length,
+                      itemBuilder: (context, index) {
+                        return new Row(
+                          
+                          children: <Widget>[
+                           
+                            Column(
+                              children: <Widget>[
+                                IconButton(
+                                    icon: Icon(snapshot.data[index].isdone
+                                        ? Icons.check_box
+                                        : Icons.check_box_outline_blank),
+                                    onPressed: () {}),
+                              ],
+                            ),
+                            Expanded(
+                              
+                                child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Container(
+                                  padding: const EdgeInsets.only(bottom: 9.0),
+                                  child:  Text(snapshot.data[index].title,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontStyle: snapshot.data[index].isdone
+                                              ? FontStyle.italic
+                                              : null)),
+                                ),
+                                Text(snapshot.data[index].description,
+                                    style: TextStyle(color: Colors.grey[500])),
+                              ],
+                            )),
+                            Column(
+                              children: <Widget>[
+                                IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () {
+                                    var dbHelper = DBHelper();
+                                    dbHelper.delete(snapshot.data[index].id);
+                                    setState(() {
+                                      getTodoFromDB();
+                                    });
+                                    // showDialog(context: context,builder:(_) => new AlertDialog(
+                                    //   contentPadding: const EdgeInsets.all(16.0),
+                                    //   content: new Row(
+                                    //     children: <Widget>[
+                                    //         Expanded(child: Column(
+                                    //           mainAxisAlignment: MainAxisAlignment.center,
+                                    //           children: <Widget>[
+                                    //            Text('dsfs')
+                                    //           ],
+
+                                    //         ))
+                                    //   ],)
+                                    // ));
+                                  },
+                                )
+                              ],
+                            )
+                          ],
+                        );
+                      },
+                    );
+                  }
+                } 
+                else if(snapshot.data.length == 0)
+                {
+                  return Text('No Record');
+                }
+                return new Container(
+                  alignment: AlignmentDirectional.center,
+                  child: new CircularProgressIndicator(),
+                );
+              },
+            )));
   }
 }
+
