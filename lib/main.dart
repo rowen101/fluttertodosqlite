@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:Todo/sqlite/db_helper.dart';
 import 'package:Todo/views/about.dart';
 import 'package:Todo/views/add.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 void main() => runApp(MyApp());
 
@@ -38,83 +39,6 @@ class _MyHomePageState extends State<MyHomePage> {
     Future<List<Todo>> todos = dbHelper.getTodo();
 
     return todos;
-  }
-
-  TextEditingController controller = TextEditingController();
-  TextEditingController cdescription = TextEditingController();
-  String name;
-  String description;
-  int curUserId;
-
-  final scaffoldKey = new GlobalKey<ScaffoldState>();
-  final formKey = new GlobalKey<FormState>();
-
-  bool isUpdating;
-
-  @override
-  void initState() {
-    super.initState();
-
-    isUpdating = false;
-  }
-
-  SingleChildScrollView dataTable(List<Todo> todo) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: DataTable(
-        columns: [
-          DataColumn(label: Text('TITLE')),
-          DataColumn(label: Text('DESCRIPTON')),
-          // DataColumn(label: Text('DELETE')),
-          DataColumn(label: Text('View'))
-        ],
-        rows: todo
-            .map(
-              (todos) => DataRow(cells: [
-                DataCell(Text(todos.title), onTap: () {
-                  setState(() {
-                    isUpdating = true;
-                    curUserId = todos.id;
-                  });
-                  controller.text = todos.title;
-                  cdescription.text = todos.description;
-                }),
-                DataCell(Text(todos.description), onTap: () {
-                  // setState(() {
-                  //   isUpdating = true;
-                  //   curUserId = employees.id;
-                  // });
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ADD(
-                                id: todos.id,
-                              )));
-                  controller.text = todos.title;
-                  cdescription.text = todos.description;
-                }),
-                // DataCell(IconButton(
-                //   icon: Icon(Icons.delete),
-                //   onPressed: () {
-                //     dbHelper.delete(todos.id);
-                //     refreshList();
-                //   },
-                // )),
-                DataCell(IconButton(
-                  icon: Icon(Icons.details),
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                TodoDetails(todo: todos.title)));
-                  },
-                )),
-              ]),
-            )
-            .toList(),
-      ),
-    );
   }
 
   @override
@@ -171,15 +95,22 @@ class _MyHomePageState extends State<MyHomePage> {
                       itemBuilder: (context, index) {
                         return new Row(
                           children: <Widget>[
-                            Column(
-                              children: <Widget>[
-                                IconButton(
-                                    icon: Icon(snapshot.data[index].isdone
-                                        ? Icons.check_box
-                                        : Icons.check_box_outline_blank),
-                                    onPressed: () {}),
-                              ],
-                            ),
+                            // Column(
+                            //   children: <Widget>[
+                            //     IconButton(
+                            //         icon: Icon(snapshot.data[index].isdone
+                            //             ? Icons.check_box
+                            //             : Icons.check_box_outline_blank),
+                            //         onPressed: () {
+                            //           var dbHelper = DBHelper();
+                            //           dbHelper
+                            //               .toggleTodoItem(snapshot.data[index]);
+                            //           setState(() {
+                            //             getTodoFromDB();
+                            //           });
+                            //         }),
+                            //   ],
+                            // ),
                             Expanded(
                                 child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,14 +121,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) => TodoDetails(
-                                                  todo: snapshot.data[index].id,
+                                                  todos: snapshot.data[index],
                                                 )));
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.only(bottom: 9.0),
                                     child: Text(snapshot.data[index].title,
                                         style: TextStyle(
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.normal,
+                                           fontSize: 20.0,
                                             fontStyle:
                                                 snapshot.data[index].isdone
                                                     ? FontStyle.italic
@@ -214,28 +146,55 @@ class _MyHomePageState extends State<MyHomePage> {
                                 IconButton(
                                   icon: Icon(Icons.delete),
                                   onPressed: () {
-                                    var dbHelper = DBHelper();
-                                    dbHelper.delete(snapshot.data[index].id);
-                                    setState(() {
-                                      getTodoFromDB();
-                                    });
-                                    // showDialog(context: context,builder:(_) => new AlertDialog(
-                                    //   contentPadding: const EdgeInsets.all(16.0),
-                                    //   content: new Row(
-                                    //     children: <Widget>[
-                                    //         Expanded(child: Column(
-                                    //           mainAxisAlignment: MainAxisAlignment.center,
-                                    //           children: <Widget>[
-                                    //            Text('dsfs')
-                                    //           ],
-
-                                    //         ))
-                                    //   ],)
-                                    // ));
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text("Delete"),
+                                            content: Text(
+                                                "Are you sure you want to move the note to the trash can?"),
+                                            actions: <Widget>[
+                                              Row(
+                                                children: <Widget>[
+                                                  FlatButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('CANCEL'),
+                                                  ),
+                                                  FlatButton(
+                                                    onPressed: () {
+                                                      var dbHelper = DBHelper();
+                                                      dbHelper.delete(snapshot
+                                                          .data[index].id);
+                                                      var toast = snapshot
+                                                          .data[index].title;
+                                                      Fluttertoast.showToast(
+                                                          msg:
+                                                              '$toast move to trash',
+                                                          toastLength: Toast
+                                                              .LENGTH_SHORT,
+                                                          backgroundColor:
+                                                              Colors.red,
+                                                          textColor:
+                                                              Colors.white);
+                                                      setState(() {
+                                                        getTodoFromDB();
+                                                      });
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                    child: Text('OK'),
+                                                  )
+                                                ],
+                                              )
+                                            ],
+                                          );
+                                        });
                                   },
-                                )
+                                ),
                               ],
-                            )
+                            ),
                           ],
                         );
                       },

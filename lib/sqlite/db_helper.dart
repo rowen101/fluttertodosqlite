@@ -11,6 +11,7 @@ class DBHelper {
     static const String TITLE = 'title';
     static const String DESCRIPTION = 'description';
     static const String ISDONE = 'isdone';
+
     static const String TABLE = 'Todo';
     static const String DB_NAME = 'todo.db';
 
@@ -71,10 +72,11 @@ class DBHelper {
     return todos;
   }
   // update checkbox
-  Future<int> checkupdate (int id,Todo todo) async {
-    var dbClient = await db;
-    return await dbClient.update(TABLE, todo.toMap(),
-      where: '$ID = ?' , whereArgs: [todo.id]);
+  Future<int> toggleTodoItem (Todo todo) async {
+    var dbClinet = await db;
+    return dbClinet.update(TABLE, todo.toMap(),
+      where: '$ID = ?', whereArgs: [todo.isdone ? 0 : 1, todo.id]);
+     
   }
 
   //delete employee

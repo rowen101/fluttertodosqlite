@@ -4,46 +4,44 @@ import 'package:flutter/material.dart';
 import 'package:Todo/sqlite/db_helper.dart';
 import 'dart:async';
 
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ADD extends StatefulWidget {
-  final  String title;
+  final String title;
   final id;
   ADD({Key key, this.title, this.id}) : super(key: key);
 
   @override
   _ADDState createState() => _ADDState();
-
-  
 }
 
 class _ADDState extends State<ADD> {
-Future<List<Todo>> todo;
+  Future<List<Todo>> todo;
   TextEditingController ctitle = TextEditingController();
   TextEditingController cdescription = TextEditingController();
   String title;
-  
+
   String description;
-  bool isDone = false ;
+  bool isDone = false;
   DateTime createdAt;
   int curUserId;
+
 
   final formKey = new GlobalKey<FormState>();
   var dbHelper;
   bool isUpdating;
 
   @override
-   void initState() {
+  void initState() {
     super.initState();
     dbHelper = DBHelper();
     isUpdating = false;
     refreshList();
-   
   }
 
-   
   refreshList() {
     setState(() {
-      todo = dbHelper.getTodoID(1) ;
+      todo = dbHelper.getTodoID(1);
     });
   }
 
@@ -51,31 +49,32 @@ Future<List<Todo>> todo;
     ctitle.text = '';
     cdescription.text = '';
   }
-  routerpage(){
-    
-  }
+
+  routerpage() {}
   validate() {
     if (formKey.currentState.validate()) {
       formKey.currentState.save();
       if (isUpdating) {
-        Todo e = Todo(curUserId,title, description,isDone);
+        Todo e = Todo(curUserId, title, description, isDone);
         dbHelper.update(e);
         setState(() {
           isUpdating = false;
-        
         });
-         
+        Fluttertoast.showToast(msg: 'Todo was Update', toastLength: Toast.LENGTH_SHORT,
+         backgroundColor: Colors.green, textColor: Colors.white);
       } else {
         Todo e = Todo(null, title, description, isDone);
         dbHelper.save(e);
-       
+          Fluttertoast.showToast(msg: '$title was Save', toastLength: Toast.LENGTH_SHORT,
+         backgroundColor: Colors.green, textColor: Colors.white);
       }
       //clearName();
       // refreshList();
       Navigator.pop(context);
     }
   }
-   form() {
+
+  form() {
     return Form(
       key: formKey,
       child: Padding(
@@ -85,7 +84,7 @@ Future<List<Todo>> todo;
           mainAxisSize: MainAxisSize.min,
           verticalDirection: VerticalDirection.down,
           children: <Widget>[
-            Text('Id '),
+            
             TextFormField(
               controller: ctitle,
               keyboardType: TextInputType.text,
@@ -105,7 +104,7 @@ Future<List<Todo>> todo;
               children: <Widget>[
                 FlatButton(
                   onPressed: validate,
-                  
+
                   child: Text(isUpdating ? 'UPDATE' : 'ADD'),
                   //  Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
                 ),
@@ -115,7 +114,7 @@ Future<List<Todo>> todo;
                       isUpdating = false;
                     });
                     // clearName();
-                      Navigator.pop(context);
+                    Navigator.pop(context);
                   },
                   child: Text('CANCEL'),
                 )
@@ -126,20 +125,20 @@ Future<List<Todo>> todo;
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     var scaffold = Scaffold(
-      appBar:AppBar(
+      appBar: AppBar(
         title: Text('Add Todo'),
       ),
-      body:Container (
-         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          verticalDirection: VerticalDirection.down,
-          children: <Widget>[ form()],
-        )
-      ),
+      body: Container(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        verticalDirection: VerticalDirection.down,
+        children: <Widget>[form()],
+      )),
     );
     return scaffold;
   }
