@@ -25,7 +25,7 @@ class _ADDState extends State<ADD> {
   bool isDone = false;
   DateTime createdAt;
   int curUserId;
-
+  String bgcolor;
 
   final formKey = new GlobalKey<FormState>();
   var dbHelper;
@@ -55,7 +55,7 @@ class _ADDState extends State<ADD> {
     if (formKey.currentState.validate()) {
       formKey.currentState.save();
       if (isUpdating) {
-        Todo e = Todo(curUserId, title, description, isDone);
+        Todo e = Todo(curUserId, title, description, isDone,bgcolor);
         dbHelper.update(e);
         setState(() {
           isUpdating = false;
@@ -63,7 +63,7 @@ class _ADDState extends State<ADD> {
         Fluttertoast.showToast(msg: 'Todo was Update', toastLength: Toast.LENGTH_SHORT,
          backgroundColor: Colors.green, textColor: Colors.white);
       } else {
-        Todo e = Todo(null, title, description, isDone);
+        Todo e = Todo(null, title, description, isDone,bgcolor);
         dbHelper.save(e);
           Fluttertoast.showToast(msg: '$title was Save', toastLength: Toast.LENGTH_SHORT,
          backgroundColor: Colors.green, textColor: Colors.white);
@@ -88,38 +88,43 @@ class _ADDState extends State<ADD> {
             TextFormField(
               controller: ctitle,
               keyboardType: TextInputType.text,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(
+                labelText: 'Title',),
               validator: (val) => val.length == 0 ? 'Enter Title' : null,
               onSaved: (val) => title = val,
             ),
+            Divider(),
             TextFormField(
               controller: cdescription,
               keyboardType: TextInputType.text,
-              decoration: InputDecoration(labelText: 'Description'),
+              maxLines: 20,
+              textCapitalization: TextCapitalization.sentences,
+
+              decoration: InputDecoration.collapsed(hintText: 'Description'),
               validator: (val) => val.length == 0 ? 'Enter Description' : null,
               onSaved: (val) => description = val,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                FlatButton(
-                  onPressed: validate,
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //   children: <Widget>[
+            //     FlatButton(
+            //       onPressed: validate,
 
-                  child: Text(isUpdating ? 'UPDATE' : 'ADD'),
-                  //  Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
-                ),
-                FlatButton(
-                  onPressed: () {
-                    setState(() {
-                      isUpdating = false;
-                    });
-                    // clearName();
-                    Navigator.pop(context);
-                  },
-                  child: Text('CANCEL'),
-                )
-              ],
-            )
+            //       child: Text(isUpdating ? 'UPDATE' : 'ADD'),
+            //       //  Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+            //     ),
+            //     FlatButton(
+            //       onPressed: () {
+            //         setState(() {
+            //           isUpdating = false;
+            //         });
+            //         // clearName();
+            //         Navigator.pop(context);
+            //       },
+            //       child: Text('CANCEL'),
+            //     )
+            //   ],
+            // )
           ],
         ),
       ),
@@ -131,6 +136,15 @@ class _ADDState extends State<ADD> {
     var scaffold = Scaffold(
       appBar: AppBar(
         title: Text('Add Todo'),
+        actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.save),
+              onPressed: (
+                validate
+               
+              )
+            ),
+        ],
       ),
       body: Container(
           child: Column(

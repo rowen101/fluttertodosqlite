@@ -11,7 +11,7 @@ class DBHelper {
     static const String TITLE = 'title';
     static const String DESCRIPTION = 'description';
     static const String ISDONE = 'isdone';
-
+    static const String BGCOLOR = 'bgcolor';
     static const String TABLE = 'Todo';
     static const String DB_NAME = 'todo.db';
 
@@ -31,7 +31,7 @@ class DBHelper {
   }
 
   _onCreate(Database db, int version) async{
-    await db.execute("CREATE TABLE $TABLE ($ID INTEGER PRIMARY KEY, $TITLE TEXT, $DESCRIPTION TEXT, $ISDONE BIT)");
+    await db.execute("CREATE TABLE $TABLE ($ID INTEGER PRIMARY KEY, $TITLE TEXT, $DESCRIPTION TEXT, $ISDONE BIT , $BGCOLOR TEXT)");
   }
 
   //Save Employee
@@ -48,7 +48,7 @@ class DBHelper {
   //select employee
   Future<List<Todo>> getTodo() async {
     var dbClient = await db;
-    List<Map> maps = await dbClient.query(TABLE, columns: [ID, TITLE, DESCRIPTION,ISDONE]);
+    List<Map> maps = await dbClient.query(TABLE, columns: [ID, TITLE, DESCRIPTION,ISDONE, BGCOLOR]);
     // List<Map> maps = await dbClient.rawQuery("SELECT * FROM $TABLE");
     List<Todo> todos = [];
     if(maps.length > 0){
@@ -61,7 +61,7 @@ class DBHelper {
   //get todo id
    Future<List<Todo>> getTodoID(int id) async {
     var dbClient = await db;
-    List<Map> maps = await dbClient.query(TABLE,where: '$ID = ?', whereArgs: [id], columns: [ID, TITLE, DESCRIPTION,ISDONE]);
+    List<Map> maps = await dbClient.query(TABLE,where: '$ID = ?', whereArgs: [id], columns: [ID, TITLE, DESCRIPTION,ISDONE,BGCOLOR]);
     // List<Map> maps = await dbClient.rawQuery("SELECT * FROM $TABLE");
     List<Todo> todos = [];
     if(maps.length > 0){
@@ -74,9 +74,9 @@ class DBHelper {
   // update checkbox
   Future<int> toggleTodoItem (Todo todo) async {
     var dbClinet = await db;
-    return dbClinet.update(TABLE, todo.toMap(),
-      where: '$ID = ?', whereArgs: [todo.isdone ? 0 : 1, todo.id]);
-     
+    return await dbClinet.update(TABLE, todo.toMap(),
+      where: '$ID = ?' , whereArgs: [todo.id]);
+   
   }
 
   //delete employee
