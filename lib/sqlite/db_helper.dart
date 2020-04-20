@@ -31,7 +31,7 @@ class DBHelper {
   }
 
   _onCreate(Database db, int version) async{
-    await db.execute("CREATE TABLE $TABLE ($ID INTEGER PRIMARY KEY, $TITLE TEXT, $DESCRIPTION TEXT, $ISDONE BIT , $BGCOLOR TEXT)");
+    await db.execute("CREATE TABLE $TABLE ($ID INTEGER PRIMARY KEY, $TITLE TEXT, $DESCRIPTION TEXT, $ISDONE BIT , $BGCOLOR INTEGER)");
   }
 
   //Save Employee

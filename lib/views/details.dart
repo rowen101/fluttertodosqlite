@@ -1,4 +1,6 @@
 import 'package:Todo/sqlite/todo.dart';
+import 'package:Todo/views/add.dart';
+
 import 'package:flutter/material.dart';
 
 class TodoDetails extends StatelessWidget {
@@ -11,7 +13,13 @@ class TodoDetails extends StatelessWidget {
       appBar: AppBar(title: Text(todos.title), actions: <Widget>[
         IconButton(
           icon: Icon(Icons.edit),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => new ADD(todos: todos),
+                ));
+          },
         ),
         // PopupMenuButton(itemBuilder: (BuildContext context) {
 
@@ -25,12 +33,17 @@ class TodoDetails extends StatelessWidget {
         // })
       ]),
       body: Container(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
+        padding: EdgeInsets.all(10.0),
+        color: Color(todos.bgcolor),
+        child: ListView(
           children: <Widget>[
             Text(
               todos.description,
-              style: TextStyle(fontSize: (20.0)),
+              style: TextStyle(
+                  fontSize: (20.0),
+                  color: todos.bgcolor == 0xFFFFFFFF
+                      ? Colors.black
+                      : Colors.white),
             )
           ],
         ),

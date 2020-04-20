@@ -3,7 +3,6 @@ import 'package:Todo/views/details.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:Todo/sqlite/db_helper.dart';
-import 'package:Todo/views/about.dart';
 import 'package:Todo/views/add.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -15,11 +14,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Todo',
+      title: 'NOTE',
       theme: ThemeData(
         primarySwatch: Colors.blueGrey,
       ),
-      home: MyHomePage(title: 'Todo'),
+      home: MyHomePage(title: 'NOTE'),
     );
   }
 }
@@ -40,7 +39,8 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isDone;
   DateTime createdAt;
   int todoid;
-  String bgcolor;
+  int bgcolor;
+
   Future<List<Todo>> getTodoFromDB() async {
     var dbHelper = DBHelper();
     Future<List<Todo>> todos = dbHelper.getTodo();
@@ -51,26 +51,26 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                  child: Text('Drawer Header'),
-                  decoration: BoxDecoration(color: Colors.blueGrey)),
-              ListTile(
-                  title: Text("About"),
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => About(
-                                  about: null,
-                                )));
-                  })
-            ],
-          ),
-        ),
+        // drawer: Drawer(
+        //   child: ListView(
+        //     padding: EdgeInsets.zero,
+        //     children: <Widget>[
+        //       DrawerHeader(
+        //           child: Text('Drawer Header'),
+        //           decoration: BoxDecoration(color: Colors.blueGrey)),
+        //       ListTile(
+        //           title: Text("About"),
+        //           onTap: () {
+        //             Navigator.push(
+        //                 context,
+        //                 MaterialPageRoute(
+        //                     builder: (context) => About(
+        //                           about: null,
+        //                         )));
+        //           })
+        //     ],
+        //   ),
+        // ),
         appBar: AppBar(
           title: Text(widget.title),
           actions: <Widget>[
@@ -78,16 +78,16 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: Icon(Icons.add_circle),
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ADD(id: null)));
+                    MaterialPageRoute(builder: (context) => ADD(todos: null)));
               },
             ),
-            PopupMenuButton(itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(
-                  child: Text('About'),
-                )
-              ];
-            })
+            // PopupMenuButton(itemBuilder: (BuildContext context) {
+            //   return [
+            //     PopupMenuItem(
+            //       child: Text('About'),
+            //     )
+            //   ];
+            // })
           ],
         ),
         body: new Container(
@@ -101,7 +101,20 @@ class _MyHomePageState extends State<MyHomePage> {
                       padding: EdgeInsets.all(0.0),
                       itemCount: snapshot.data.length,
                       itemBuilder: (context, index) {
-                        return Container(
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => TodoDetails(
+                                          todos: snapshot.data[index],
+                                        )));
+                          },
+                          child: Card(
+                           
+                           
+                          
+                          color: Color(snapshot.data[index].bgcolor),
                           child: new Row(
                             children: <Widget>[
                               Column(
@@ -117,6 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         description =
                                             snapshot.data[index].description;
                                         isDone = snapshot.data[index].isdone;
+                                        bgcolor = snapshot.data[index].bgcolor;
                                         if (isDone != true) {
                                           Todo e = Todo(todoid, title,
                                               description, true, bgcolor);
@@ -139,26 +153,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                   child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => TodoDetails(
-                                                    todos: snapshot.data[index],
-                                                  )));
-                                    },
-                                    child: Container(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 5.0),
-                                      child: Text(
+                                     Text(
                                         snapshot.data[index].title,
                                         style: TextStyle(
                                           fontWeight: FontWeight.normal,
                                           fontSize: 20.0,
-                                          color: snapshot.data[index].isdone
-                                              ? Colors.grey
-                                              : null,
+                                          color: snapshot.data[index].bgcolor == 0xFFFFFFFF
+                                              ? Colors.black
+                                              : Colors.white,
                                           decoration:
                                               snapshot.data[index].isdone
                                                   ? TextDecoration.lineThrough
@@ -168,8 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                               : null,
                                         ),
                                       ),
-                                    ),
-                                  ),
+                               
                                   // Text(snapshot.data[index].description,
                                   //     style: TextStyle(color: Colors.grey[500])
                                   //     ),
@@ -232,6 +233,8 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ],
                           ),
+                        
+                          )
                         );
                       },
                     );

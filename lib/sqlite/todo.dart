@@ -3,7 +3,7 @@ class Todo{
   String title;
   String description;
   bool isdone;
-  String bgcolor;
+  int bgcolor;
   // DateTime createAt;
   Todo(this.id, this.title, this.description, this.isdone,this.bgcolor);
     Map<String, dynamic> toMap(){
