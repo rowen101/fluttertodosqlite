@@ -42,7 +42,7 @@ class _ADDState extends State<ADD> {
     refreshList();
     if (widget.todos == null) {
       appmethod = true;
-      bgcolor = 0xFFFFFFFF;
+      bgcolor = 0xFF303030;
     } else {
       appmethod = false;
       curUserId = widget.todos.id;
@@ -107,10 +107,11 @@ class _ADDState extends State<ADD> {
             TextFormField(
               controller: ctitle,
               keyboardType: TextInputType.text,
-              // style: TextStyle(
-              //     color: bgcolor != 0xFFFFFFFF ? Colors.white : Colors.black,),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontStyle: FontStyle.normal,
+                  fontSize: 20.0,fontFamily: 'RobotoMono'),
               decoration: new InputDecoration(
-                  
                   border: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   enabledBorder: InputBorder.none,
@@ -133,9 +134,10 @@ class _ADDState extends State<ADD> {
               keyboardType: TextInputType.text,
               maxLines: 25,
               textCapitalization: TextCapitalization.sentences,
-              
-              // style: TextStyle(
-              //     color: bgcolor == 0xFFFFFFFF ? Colors.black : Colors.white),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontStyle: FontStyle.normal,
+                  fontSize: 20.0),
               decoration: new InputDecoration(
                 border: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -199,14 +201,14 @@ class _ADDState extends State<ADD> {
                           FlatButton(
                               onPressed: () {
                                 setState(() {
-                                  bgcolor = 0xFFFFFFFF;
+                                  bgcolor = 0xFF303030;
                                 });
                                 Navigator.pop(context);
                               },
                               child: Container(
-                                width: 75.0,
-                                height: 75.0,
-                              ))
+                                  width: 75.0,
+                                  height: 75.0,
+                                  color: Color(0xFF303030)))
                         ],
                       ),
                       Divider(),
